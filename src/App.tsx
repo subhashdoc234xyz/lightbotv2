@@ -166,19 +166,21 @@ export default function App() {
   const activeChat = chats.find((c) => c.id === activeChatId) || null;
 
   const createNewChat = (autoSelect = true) => {
-    if (!user) return;
+    const currentUserId = user?.id || `user-${Date.now()}`;
     const newChat: Chat = {
       id: `chat-${Date.now()}`,
-      userId: user.id,
+      userId: currentUserId,
       title: "New Conversation",
       createdAt: Date.now(),
       updatedAt: Date.now(),
       isShared: false,
-      model: settings.model || "llama-3.1-8b-instant",
+      model: settings.model || "llama-3.3-70b-versatile",
       messages: [],
     };
     setChats((prev) => [newChat, ...prev]);
-    dbUpsertChat(newChat);
+    if (user) {
+      dbUpsertChat(newChat);
+    }
 
     if (autoSelect) {
       setActiveChatId(newChat.id);
@@ -193,9 +195,20 @@ export default function App() {
     text: string,
     attachment?: { data: string; mimeType: string; previewUrl?: string }
   ) => {
-    if (!user) {
-      setIsAuthOpen(true);
-      return;
+    let currentUser = user;
+    if (!currentUser) {
+      const guestId = `guest-${Date.now()}`;
+      const guestUser: UserProfile = {
+        id: guestId,
+        name: "Guest Explorer",
+        email: "guest@light.local",
+        avatarUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${guestId}&backgroundColor=1e1b4b`,
+        isGuest: true,
+        tier: "Free Explorer",
+        authProvider: "guest",
+      };
+      setUser(guestUser);
+      currentUser = guestUser;
     }
 
     let targetChatId = activeChatId;
@@ -632,11 +645,7 @@ export default function App() {
         <LandingPage
           user={user}
           onGetStarted={() => {
-            if (user) {
-              setCurrentScreen("chat");
-            } else {
-              setIsAuthOpen(true);
-            }
+            setCurrentScreen("chat");
           }}
           onSignIn={() => setIsAuthOpen(true)}
         />
