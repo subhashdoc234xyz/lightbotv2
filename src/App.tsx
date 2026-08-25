@@ -23,7 +23,10 @@ import confetti from "canvas-confetti";
 
 export default function App() {
   // Navigation & Modal states
-  const [currentScreen, setCurrentScreen] = useState<"landing" | "chat" | "share_view">("landing");
+  const [currentScreen, setCurrentScreen] = useState<"landing" | "chat" | "share_view">(() => {
+    const saved = localStorage.getItem("light_ai_user");
+    return saved ? "chat" : "landing";
+  });
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -68,6 +71,16 @@ export default function App() {
 
   // Initialize Supabase Auth state listener
   useEffect(() => {
+    // Check if URL contains auth error parameters from Supabase redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorDesc = urlParams.get("error_description");
+    const errorCode = urlParams.get("error_code");
+    if (errorDesc || errorCode) {
+      console.error("Auth redirect error:", errorDesc || errorCode);
+      // Clean query parameters from URL without reloading
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     const supabase = getSupabase();
     if (supabase) {
       // Check current session
@@ -75,6 +88,7 @@ export default function App() {
         if (session?.user) {
           const profile = mapSupabaseUser(session.user);
           setUser(profile);
+          setCurrentScreen("chat");
         }
       });
 
@@ -84,6 +98,7 @@ export default function App() {
         if (session?.user) {
           const profile = mapSupabaseUser(session.user);
           setUser(profile);
+          setCurrentScreen("chat");
         }
       });
 
@@ -615,6 +630,7 @@ export default function App() {
       {/* Screen 1: Landing Page */}
       {currentScreen === "landing" && (
         <LandingPage
+          user={user}
           onGetStarted={() => {
             if (user) {
               setCurrentScreen("chat");

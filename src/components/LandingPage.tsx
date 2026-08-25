@@ -4,11 +4,13 @@ import { Sparkles, ArrowRight, Shield, Zap, Lock } from "lucide-react";
 interface LandingPageProps {
   onGetStarted: () => void;
   onSignIn: () => void;
+  user?: any;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   onGetStarted,
   onSignIn,
+  user,
 }) => {
   return (
     <div className="relative min-h-screen flex flex-col justify-between text-white select-none">
@@ -50,10 +52,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         <button
           id="landing-sign-in-btn"
-          onClick={onSignIn}
+          onClick={user ? onGetStarted : onSignIn}
           className="px-5 py-2 rounded-full bg-gradient-to-r from-sky-600 to-cyan-500 text-white text-xs font-mono-code font-semibold uppercase tracking-wider hover:from-sky-500 hover:to-cyan-400 shadow-[0_0_20px_rgba(14,165,233,0.4)] hover:shadow-[0_0_30px_rgba(14,165,233,0.7)] transition-all duration-300 active:scale-95 cursor-pointer border border-sky-300/30"
         >
-          Sign In
+          {user ? "Open Chat" : "Sign In"}
         </button>
       </header>
 
