@@ -121,33 +121,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         });
         if (error) throw error;
       } catch (err: any) {
-        console.warn("Google OAuth error, using local Google profile:", err);
-        // Fallback for iframe preview if OAuth redirect is restricted in container
-        const user: UserProfile = {
-          id: "google-pioneer-101",
-          name: "Alex Vance",
-          email: "alex.vance@gmail.com",
-          avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
-          isGuest: false,
-          tier: "Supabase Cloud",
-          authProvider: "google",
-        };
-        onSuccess(user);
+        console.error("Google OAuth error:", err);
+        setErrorMessage(err?.message || "Google Sign-In failed. Please verify Google OAuth redirect URL in Supabase.");
+        setIsLoading(false);
       }
     } else {
-      setTimeout(() => {
-        setIsLoading(false);
-        const user: UserProfile = {
-          id: "google-pioneer-101",
-          name: "Alex Vance",
-          email: "alex.vance@gmail.com",
-          avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
-          isGuest: false,
-          tier: "Premium Member",
-          authProvider: "google",
-        };
-        onSuccess(user);
-      }, 400);
+      setIsLoading(false);
+      setErrorMessage("Supabase is not yet connected with an Anon Key. Please configure your Supabase Anon Key in Settings or deploy environment.");
     }
   };
 

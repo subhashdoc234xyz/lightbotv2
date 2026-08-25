@@ -2,7 +2,7 @@ import { createClient, SupabaseClient, User } from "@supabase/supabase-js";
 import { Chat, Message, UserProfile } from "../types";
 
 // Check environment variables or local storage overrides
-const envUrl = import.meta.env.VITE_SUPABASE_URL || "";
+const envUrl = import.meta.env.VITE_SUPABASE_URL || "https://ghumvuoqrdnhmemtbhsu.supabase.co";
 const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 
 let supabaseInstance: SupabaseClient | null = null;

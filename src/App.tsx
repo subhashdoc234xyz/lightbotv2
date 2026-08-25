@@ -122,34 +122,9 @@ export default function App() {
           setChats(fetchedChats);
           setActiveChatId(fetchedChats[0].id);
         } else {
-          // Initialize fresh starter chat
-          const initialChat: Chat = {
-            id: `chat-${Date.now()}`,
-            userId: user.id,
-            title: "Quantum Mechanics & Supercomputing",
-            createdAt: Date.now() - 3600000 * 2,
-            updatedAt: Date.now() - 3600000 * 2,
-            isShared: false,
-            model: settings.model || "llama-3.1-8b-instant",
-            messages: [
-              {
-                id: "msg-1",
-                role: "user",
-                content: "Explain the concept of quantum entanglement and its role in quantum supercomputing.",
-                createdAt: Date.now() - 3600000 * 2,
-              },
-              {
-                id: "msg-2",
-                role: "assistant",
-                content:
-                  "**Quantum entanglement** is a phenomenon where pairs or groups of particles interact in ways such that the quantum state of each particle cannot be described independently of the state of the others, even when separated by light-years.\n\n### Key Applications in Supercomputing\n- **Exponential Parallelism**: Entangled qubits can exist in superpositions of all possible states simultaneously ($2^N$ combinations for $N$ qubits).\n- **Quantum Teleportation & Cryptography**: Enables quantum key distribution (QKD) with provable mathematical security.\n- **Error Correction**: Topological entanglement braids protect sensitive quantum information against environmental decoherence.",
-                createdAt: Date.now() - 3600000 * 2 + 1000,
-              },
-            ],
-          };
-          setChats([initialChat]);
-          setActiveChatId(initialChat.id);
-          dbUpsertChat(initialChat);
+          // Clean fresh start for real user
+          setChats([]);
+          setActiveChatId(null);
         }
       });
 
