@@ -2,8 +2,11 @@ import { createClient, SupabaseClient, User } from "@supabase/supabase-js";
 import { Chat, Message, UserProfile } from "../types";
 
 // Check environment variables or local storage overrides
-const envUrl = import.meta.env.VITE_SUPABASE_URL || "https://ghumvuoqrdnhmemtbhsu.supabase.co";
-const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+const DEFAULT_URL = "https://ghumvuoqrdnhmemtbhsu.supabase.co";
+const DEFAULT_KEY = "sb_publishable_NIE7o3F0jLM350SiIqHceg_hxf9D";
+
+const envUrl = import.meta.env.VITE_SUPABASE_URL || DEFAULT_URL;
+const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || DEFAULT_KEY;
 
 let supabaseInstance: SupabaseClient | null = null;
 
@@ -11,12 +14,11 @@ export function getSupabaseConfig(): { url: string; anonKey: string; isConfigure
   const localUrl = localStorage.getItem("light_ai_supabase_url") || envUrl;
   const localKey = localStorage.getItem("light_ai_supabase_key") || envKey;
   const isConfigured = Boolean(localUrl && localKey && localUrl.startsWith("http"));
-  return { url: localUrl, anonKey: localKey, isConfigured };
+  return { url: localUrl || DEFAULT_URL, anonKey: localKey || DEFAULT_KEY, isConfigured: true };
 }
 
 export function getSupabase(): SupabaseClient | null {
-  const { url, anonKey, isConfigured } = getSupabaseConfig();
-  if (!isConfigured) return null;
+  const { url, anonKey } = getSupabaseConfig();
 
   if (!supabaseInstance) {
     try {
@@ -24,6 +26,7 @@ export function getSupabase(): SupabaseClient | null {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
+          detectSessionInUrl: true,
         },
       });
     } catch (err) {
@@ -40,15 +43,30 @@ export function resetSupabaseClient() {
 
 // Convert Supabase User to UserProfile
 export function mapSupabaseUser(user: User): UserProfile {
+  const meta = user.user_metadata || {};
+  const email = user.email || "";
+  const name =
+    meta.full_name ||
+    meta.name ||
+    meta.user_name ||
+    meta.given_name ||
+    (email ? email.split("@")[0] : "Light Explorer");
+
+  const avatarUrl =
+    meta.avatar_url ||
+    meta.picture ||
+    `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name || email || "User")}&backgroundColor=0284c7`;
+
+  const provider = (user.app_metadata?.provider as any) || (email ? "google" : "email");
+
   return {
     id: user.id,
-    email: user.email || "user@light.ai",
-    name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Light Pioneer",
-    avatarUrl:
-      user.user_metadata?.avatar_url ||
-      `https://api.dicebear.com/7.x/bottts/svg?seed=${user.id}&backgroundColor=0f172a`,
-    tier: "Supabase Cloud",
-    authProvider: (user.app_metadata?.provider as any) || "email",
+    email: email,
+    name: name,
+    avatarUrl: avatarUrl,
+    tier: provider === "google" ? "Google Verified" : "Cloud Account",
+    authProvider: provider,
+    isGuest: false,
   };
 }
 

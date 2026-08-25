@@ -11,6 +11,8 @@ import {
   ChevronRight,
   Settings,
   LogOut,
+  LogIn,
+  User as UserIcon,
   PanelLeftClose,
   PanelLeft,
   X,
@@ -30,6 +32,7 @@ interface SidebarProps {
   user: UserProfile | null;
   onOpenSettings: () => void;
   onSignOut: () => void;
+  onOpenAuth?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -45,6 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   user,
   onOpenSettings,
   onSignOut,
+  onOpenAuth,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
@@ -324,32 +328,60 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
 
-          {/* User Profile Trigger Bar */}
-          <div
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 hover:bg-slate-900 border border-white/5 hover:border-sky-400/30 transition-all duration-200 cursor-pointer"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <img
-                src={user?.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
-                alt="User Profile"
-                className="w-8 h-8 rounded-full object-cover border border-sky-400/40 shadow-sm"
-              />
-              <div className="min-w-0">
-                <div className="text-xs font-semibold text-white truncate">
-                  {user?.name || "AI Explorer"}
-                </div>
-                <div className="text-[10px] font-mono-code text-sky-400">
-                  {user?.tier || "Premium Member"}
+          {/* User Profile Trigger Bar or Sign In */}
+          {user && !user.isGuest ? (
+            <div
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 hover:bg-slate-900 border border-sky-400/20 hover:border-sky-400/40 transition-all duration-200 cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <img
+                  src={
+                    user.avatarUrl ||
+                    `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name || user.email)}&backgroundColor=0284c7`
+                  }
+                  alt={user.name || "User Avatar"}
+                  className="w-8 h-8 rounded-full object-cover border border-sky-400/50 shadow-sm shrink-0 bg-slate-800"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name || user.email)}&backgroundColor=0284c7`;
+                  }}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-semibold text-white truncate">
+                    {user.name || user.email?.split("@")[0] || "User"}
+                  </div>
+                  <div className="text-[10px] text-sky-400 truncate font-mono-code">
+                    {user.email || user.tier || "Connected"}
+                  </div>
                 </div>
               </div>
+              <ChevronRight
+                className={`w-4 h-4 text-slate-500 shrink-0 transition-transform duration-200 ${
+                  showProfileMenu ? "rotate-90 text-sky-400" : ""
+                }`}
+              />
             </div>
-            <ChevronRight
-              className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${
-                showProfileMenu ? "rotate-90 text-sky-400" : ""
-              }`}
-            />
-          </div>
+          ) : (
+            <button
+              onClick={onOpenAuth}
+              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-sky-950/60 to-slate-900/80 hover:from-sky-900/60 hover:to-slate-800 border border-sky-500/30 hover:border-sky-400/60 transition-all duration-200 text-left group cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400 group-hover:scale-105 transition-transform">
+                  <LogIn className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-white group-hover:text-sky-300">
+                    Sign In / Connect
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono-code">
+                    Google or Supabase
+                  </div>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all" />
+            </button>
+          )}
         </div>
       </aside>
     </>

@@ -676,6 +676,7 @@ export default function App() {
             user={user}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onSignOut={handleSignOut}
+            onOpenAuth={() => setIsAuthOpen(true)}
           />
 
           {/* Main Chat Panel Area */}

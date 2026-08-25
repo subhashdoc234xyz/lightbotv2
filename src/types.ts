@@ -29,7 +29,7 @@ export interface UserProfile {
   email: string;
   avatarUrl: string;
   isGuest?: boolean;
-  tier: "Free Explorer" | "Premium Member" | "Supabase Cloud";
+  tier: string;
   authProvider?: "email" | "google" | "guest";
 }
 
