@@ -32,11 +32,10 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // User State
-  const [user, setUser] = useState<UserProfile | null>(() => {
-    const saved = localStorage.getItem("light_ai_user");
-    return saved ? JSON.parse(saved) : null;
-  });
+  // User State — do NOT initialize from localStorage; Supabase session is always
+  // the authoritative source. getSession() runs immediately on mount and sets this.
+  // This prevents stale/demo account data from appearing after a real sign-in.
+  const [user, setUser] = useState<UserProfile | null>(null);
 
   // Settings State
   const [settings, setSettings] = useState<ChatSettings>(() => {
@@ -83,10 +82,11 @@ export default function App() {
 
     const supabase = getSupabase();
     if (supabase) {
-      // Check current session
+      // Check current session and immediately overwrite any stale localStorage user
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
           const profile = mapSupabaseUser(session.user);
+          localStorage.setItem("light_ai_user", JSON.stringify(profile));
           setUser(profile);
           setCurrentScreen("chat");
         }
@@ -97,14 +97,29 @@ export default function App() {
       } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
           const profile = mapSupabaseUser(session.user);
+          localStorage.setItem("light_ai_user", JSON.stringify(profile));
           setUser(profile);
           setCurrentScreen("chat");
+        } else if (_event === "SIGNED_OUT") {
+          localStorage.removeItem("light_ai_user");
+          setUser(null);
         }
       });
 
       return () => {
         subscription.unsubscribe();
       };
+    } else {
+      // Offline / local sandbox: restore session from localStorage
+      const saved = localStorage.getItem("light_ai_user");
+      if (saved) {
+        try {
+          setUser(JSON.parse(saved));
+          setCurrentScreen("chat");
+        } catch {
+          localStorage.removeItem("light_ai_user");
+        }
+      }
     }
   }, []);
 
