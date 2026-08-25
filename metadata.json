@@ -1,0 +1,6 @@
+{
+  "name": "Light AI",
+  "description": "Premium luminous AI chatbot with deep-space galaxy visuals, streaming intelligence, personal history management, and shareable conversations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
