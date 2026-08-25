@@ -329,7 +329,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
 
           {/* User Profile Trigger Bar or Sign In */}
-          {user && !user.isGuest ? (
+          {user ? (
             <div
               onClick={() => setShowProfileMenu(!showProfileMenu)}
               className="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 hover:bg-slate-900 border border-sky-400/20 hover:border-sky-400/40 transition-all duration-200 cursor-pointer"
@@ -338,12 +338,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <img
                   src={
                     user.avatarUrl ||
-                    `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name || user.email)}&backgroundColor=0284c7`
+                    `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name || user.email || "User")}&backgroundColor=0284c7`
                   }
                   alt={user.name || "User Avatar"}
                   className="w-8 h-8 rounded-full object-cover border border-sky-400/50 shadow-sm shrink-0 bg-slate-800"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name || user.email)}&backgroundColor=0284c7`;
+                    (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name || user.email || "User")}&backgroundColor=0284c7`;
                   }}
                 />
                 <div className="min-w-0 flex-1">

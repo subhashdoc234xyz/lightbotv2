@@ -85,33 +85,22 @@ export default function App() {
 
     const supabase = getSupabase();
     if (supabase) {
-      // Validate & overwrite any stale localStorage user with the live Supabase session.
-      // This runs immediately on mount and is the single source of truth for auth.
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
-          // Real authenticated user — always use fresh Supabase data
           const profile = mapSupabaseUser(session.user);
           localStorage.setItem("light_ai_user", JSON.stringify(profile));
           setUser(profile);
           setCurrentScreen("chat");
         } else {
-          // No active Supabase session — clear any stale Supabase-type user
-          // (guest/local offline users are intentionally kept)
           const saved = localStorage.getItem("light_ai_user");
           if (saved) {
             try {
-              const cached = JSON.parse(saved);
-              const isSupabaseUser = cached.authProvider === "google" ||
-                (cached.authProvider === "email" && !String(cached.id).startsWith("user-"));
-              if (isSupabaseUser) {
-                localStorage.removeItem("light_ai_user");
-                setUser(null);
-                setCurrentScreen("landing");
-              }
+              const parsedUser = JSON.parse(saved);
+              setUser(parsedUser);
+              setCurrentScreen("chat");
             } catch {
               localStorage.removeItem("light_ai_user");
               setUser(null);
-              setCurrentScreen("landing");
             }
           }
         }
