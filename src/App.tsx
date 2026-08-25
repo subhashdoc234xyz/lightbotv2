@@ -32,10 +32,13 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // User State — do NOT initialize from localStorage; Supabase session is always
-  // the authoritative source. getSession() runs immediately on mount and sets this.
-  // This prevents stale/demo account data from appearing after a real sign-in.
-  const [user, setUser] = useState<UserProfile | null>(null);
+  // User State — restore from localStorage for instant first render.
+  // Supabase session check in the effect below will immediately validate
+  // and overwrite this with the correct authenticated user data.
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    const saved = localStorage.getItem("light_ai_user");
+    try { return saved ? JSON.parse(saved) : null; } catch { return null; }
+  });
 
   // Settings State
   const [settings, setSettings] = useState<ChatSettings>(() => {
@@ -82,13 +85,35 @@ export default function App() {
 
     const supabase = getSupabase();
     if (supabase) {
-      // Check current session and immediately overwrite any stale localStorage user
+      // Validate & overwrite any stale localStorage user with the live Supabase session.
+      // This runs immediately on mount and is the single source of truth for auth.
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
+          // Real authenticated user — always use fresh Supabase data
           const profile = mapSupabaseUser(session.user);
           localStorage.setItem("light_ai_user", JSON.stringify(profile));
           setUser(profile);
           setCurrentScreen("chat");
+        } else {
+          // No active Supabase session — clear any stale Supabase-type user
+          // (guest/local offline users are intentionally kept)
+          const saved = localStorage.getItem("light_ai_user");
+          if (saved) {
+            try {
+              const cached = JSON.parse(saved);
+              const isSupabaseUser = cached.authProvider === "google" ||
+                (cached.authProvider === "email" && !String(cached.id).startsWith("user-"));
+              if (isSupabaseUser) {
+                localStorage.removeItem("light_ai_user");
+                setUser(null);
+                setCurrentScreen("landing");
+              }
+            } catch {
+              localStorage.removeItem("light_ai_user");
+              setUser(null);
+              setCurrentScreen("landing");
+            }
+          }
         }
       });
 
@@ -103,6 +128,7 @@ export default function App() {
         } else if (_event === "SIGNED_OUT") {
           localStorage.removeItem("light_ai_user");
           setUser(null);
+          setCurrentScreen("landing");
         }
       });
 
